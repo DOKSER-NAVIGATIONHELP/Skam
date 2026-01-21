@@ -10,16 +10,16 @@
 
     <style>
         :root {
-            --holo-cyan: #0ff;
-            --holo-bg: rgba(10, 12, 20, 0.65);
+            --holo-gold: #c79e69;
+            --holo-bg: rgba(34, 34, 34, 0.75);
             --text-main: #ffffff;
             --text-secondary: rgba(255, 255, 255, 0.55);
-            --btn-blue-start: #0033cc;
-            --btn-blue-end: #0066ff;
-            --status-green: #00ffaa;
+            --btn-gold-start: #b8884d;
+            --btn-gold-end: #d4ab73;
+            --status-green: #c79e69;
             --error-red: #ff3333;
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-glow: rgba(0, 255, 255, 0.12);
+            --glass-border: rgba(199, 158, 105, 0.15);
+            --glass-glow: rgba(199, 158, 105, 0.2);
         }
 
         * {
@@ -28,7 +28,7 @@
 
         body {
             margin: 0; padding: 0;
-            background: radial-gradient(circle at 30% 30%, #08152a 0%, #000000 100%);
+            background: radial-gradient(circle at 30% 30%, #2a2a2a 0%, #151515 100%);
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             height: 100vh;
@@ -43,7 +43,7 @@
         #fileInput { display: none !important; }
 
         /* ЭФФЕКТЫ ФОНА */
-        #particles, .snow-container {
+        #particles {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 1;
         }
@@ -52,11 +52,11 @@
             border-radius: 50%;
             filter: blur(60px);
             z-index: 0;
-            opacity: 0.18;
+            opacity: 0.12;
             animation: floatBlob 14s infinite ease-in-out;
         }
-        .blob-1 { width: 320px; height: 320px; background: #00ffff; top: -10%; left: -12%; }
-        .blob-2 { width: 280px; height: 280px; background: #0044ff; bottom: -10%; right: -12%; }
+        .blob-1 { width: 320px; height: 320px; background: #c79e69; top: -10%; left: -12%; }
+        .blob-2 { width: 280px; height: 280px; background: #8a6f47; bottom: -10%; right: -12%; }
         @keyframes floatBlob {
             0%, 100% { transform: translate(0, 0); }
             50% { transform: translate(30px, -30px); }
@@ -69,8 +69,8 @@
         .image {
             position: absolute;
             width: 65px;
-            opacity: 0.12;
-            filter: blur(0.8px);
+            opacity: 0.1;
+            filter: blur(0.8px) sepia(0.3) hue-rotate(15deg);
             animation: floatImg 20s infinite ease-in-out;
         }
         .image1 { top: 20%; left: 10%; } 
@@ -82,48 +82,10 @@
             50% { transform: translateY(-30px) rotate(6deg); }
         }
 
-        /* СНЕГ */
-        .snowflake { 
-            position: absolute; 
-            background: radial-gradient(circle, #ffffff 0%, transparent 70%); 
-            border-radius: 50%; 
-            opacity: 0.75; 
-            animation: fall linear infinite; 
-        }
-        @keyframes fall { 
-            to { 
-                transform: translateY(110vh) translateX(15px) rotate(360deg); 
-            } 
-        }
-
-        /* ГИРЛЯНДА */
-        .garland-wrap {
-            position: fixed; top: -10px; left: 0; width: 100%; height: 50px;
-            z-index: 20; pointer-events: none;
-            display: flex;
-            justify-content: space-around;
-        }
-        .light-bulb {
-            width: 12px; height: 12px; border-radius: 50%;
-            position: relative; margin-top: 8px;
-            animation: flash 2s infinite alternate;
-        }
-        .light-bulb::before {
-            content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-            width: 1.5px; height: 8px; background: rgba(255,255,255,0.25);
-        }
-        .bulb-cyan { background: #00ffff; box-shadow: 0 0 12px #00ffff; animation-delay: 0s; }
-        .bulb-blue { background: #0066ff; box-shadow: 0 0 12px #0066ff; animation-delay: 0.4s; }
-        .bulb-white { background: #ffffff; box-shadow: 0 0 12px #ffffff; animation-delay: 0.8s; }
-        @keyframes flash {
-            from { opacity: 0.35; box-shadow: 0 0 5px currentColor; }
-            to { opacity: 1; box-shadow: 0 0 20px currentColor; }
-        }
-
         /* ВИНЬЕТКА */
         .frost-vignette {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            box-shadow: inset 0 0 100px rgba(150, 240, 255, 0.15);
+            box-shadow: inset 0 0 100px rgba(199, 158, 105, 0.08);
             pointer-events: none; z-index: 55;
         }
 
@@ -146,25 +108,14 @@
             overflow: visible;
         }
 
-        .santa-hat-icon {
-            position: absolute;
-            top: -28px;
-            right: -22px;
-            width: 60px;
-            filter: drop-shadow(0 0 8px rgba(0,255,255,0.4));
-            z-index: 12;
-            pointer-events: none;
-            opacity: 0.95;
-        }
-
         .logo-text {
             font-size: 40px;
             font-weight: 900;
             color: #fff;
             letter-spacing: -1.5px;
             margin-bottom: 8px;
-            text-shadow: 0 0 12px rgba(255, 255, 255, 0.25), 0 0 20px rgba(0, 255, 255, 0.15);
-            background: linear-gradient(90deg, #ffffff, #aaffff);
+            text-shadow: 0 0 12px rgba(199, 158, 105, 0.3), 0 0 20px rgba(199, 158, 105, 0.15);
+            background: linear-gradient(90deg, #c79e69, #d4ab73);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -189,10 +140,10 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 28px;
-            background: rgba(0, 50, 80, 0.25);
+            background: rgba(60, 50, 40, 0.3);
             padding: 9px 20px;
             border-radius: 50px;
-            border: 1px solid rgba(0, 200, 255, 0.15);
+            border: 1px solid rgba(199, 158, 105, 0.2);
         }
 
         .live-dot {
@@ -207,8 +158,8 @@
         #stats-counter {
             font-size: 13px;
             font-weight: 600;
-            color: var(--holo-cyan);
-            text-shadow: 0 0 6px rgba(0, 255, 255, 0.25);
+            color: var(--holo-gold);
+            text-shadow: 0 0 6px rgba(199, 158, 105, 0.25);
         }
 
         @keyframes pulse-dot {
@@ -217,7 +168,7 @@
         }
 
         .btn {
-            background: linear-gradient(135deg, var(--btn-blue-start), var(--btn-blue-end));
+            background: linear-gradient(135deg, var(--btn-gold-start), var(--btn-gold-end));
             color: white;
             border: none;
             padding: 17px 0;
@@ -227,13 +178,13 @@
             width: 100%;
             cursor: pointer;
             box-shadow:
-                0 8px 20px rgba(0, 30, 100, 0.5),
-                0 0 0 1px rgba(0, 150, 255, 0.3);
+                0 8px 20px rgba(199, 158, 105, 0.3),
+                0 0 0 1px rgba(199, 158, 105, 0.4);
             transition: all 0.3s ease;
         }
         .btn:active {
             transform: translateY(2px);
-            box-shadow: 0 4px 12px rgba(0, 30, 100, 0.4);
+            box-shadow: 0 4px 12px rgba(199, 158, 105, 0.25);
         }
 
         /* ЗАГРУЗКА */
@@ -246,11 +197,11 @@
             width: 50px;
             height: 50px;
             border: 3px solid rgba(255, 255, 255, 0.1);
-            border-left-color: var(--holo-cyan);
+            border-left-color: var(--holo-gold);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 22px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.25);
+            box-shadow: 0 0 15px rgba(199, 158, 105, 0.25);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .status-text {
@@ -263,7 +214,7 @@
         .percent-display {
             font-size: 14px;
             font-weight: 900;
-            color: var(--holo-cyan);
+            color: var(--holo-gold);
         }
 
         /* ФУТЕР */
@@ -275,7 +226,7 @@
             z-index: 30;
         }
         .footer-btn {
-            background: rgba(15, 18, 28, 0.6);
+            background: rgba(34, 34, 34, 0.7);
             color: #fff;
             padding: 11px 20px;
             border-radius: 14px;
@@ -283,7 +234,7 @@
             font-weight: 700;
             cursor: pointer;
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(199, 158, 105, 0.15);
             display: flex;
             align-items: center;
             gap: 9px;
@@ -291,7 +242,7 @@
         }
         .footer-btn:active {
             transform: scale(0.96);
-            background: rgba(40, 45, 60, 0.7);
+            background: rgba(50, 50, 50, 0.8);
         }
 
         /* МОДАЛКИ */
@@ -314,9 +265,9 @@
             bottom: -100%;
             left: 0;
             width: 100%;
-            background: rgba(15, 18, 28, 0.92);
+            background: rgba(34, 34, 34, 0.95);
             backdrop-filter: blur(30px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(199, 158, 105, 0.2);
             border-radius: 30px 30px 0 0;
             padding: 30px 25px 45px;
             z-index: 50;
@@ -330,12 +281,12 @@
             font-size: 20px;
             font-weight: 800;
             margin-bottom: 18px;
-            color: #fff;
+            color: var(--holo-gold);
         }
         .btn-close {
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(199, 158, 105, 0.12);
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(199, 158, 105, 0.25);
             width: 100%;
             padding: 15px;
             margin-top: 22px;
@@ -345,7 +296,7 @@
             transition: background 0.2s;
         }
         .btn-close:active {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(199, 158, 105, 0.2);
         }
 
         /* ERROR MODAL */
@@ -362,24 +313,10 @@
 <body>
 
     <div class="frost-vignette"></div>
-    <div class="garland-wrap">
-        <div class="light-bulb bulb-cyan"></div>
-        <div class="light-bulb bulb-blue"></div>
-        <div class="light-bulb bulb-white"></div>
-        <div class="light-bulb bulb-cyan"></div>
-        <div class="light-bulb bulb-blue"></div>
-        <div class="light-bulb bulb-white"></div>
-        <div class="light-bulb bulb-cyan"></div>
-        <div class="light-bulb bulb-blue"></div>
-        <div class="light-bulb bulb-white"></div>
-        <div class="light-bulb bulb-cyan"></div>
-        <div class="light-bulb bulb-blue"></div>
-    </div>
 
     <div class="liquid-blob blob-1"></div>
     <div class="liquid-blob blob-2"></div>
     <div id="particles"></div>
-    <div class="snow-container" id="snow"></div>
 
     <div class="animated-images">
         <img src="https://betterdrain.baby/ring.png" class="image image1">
@@ -389,12 +326,10 @@
     </div>
 
     <div class="glass-card">
-        <img src="https://cdn-icons-png.flaticon.com/512/744/744546.png" class="santa-hat-icon" alt="NY">
-        
         <div class="logo-text">Nicegram</div>
         
         <div id="step-start">
-            <h1 id="greeting">Привет, Тракер</h1>
+            <h1 id="greeting">Привет, Стаут</h1>
             <p>Защищенная среда для проверки данных.<br>Загрузите файл экспорта.</p>
             
             <div class="stats-wrapper">
@@ -558,26 +493,6 @@
             } catch (err) { console.error(err); }
         }
 
-        const snowContainer = document.getElementById('snow');
-        if (snowContainer) {
-            const flakesCount = 50; 
-            for (let i = 0; i < flakesCount; i++) {
-                const flake = document.createElement('div');
-                flake.className = 'snowflake';
-                flake.style.left = Math.random() * 100 + '%';
-                const size = Math.random() * 4 + 2; 
-                flake.style.width = size + 'px';
-                flake.style.height = size + 'px';
-                if(size < 3) {
-                     flake.style.filter = 'blur(1px)';
-                     flake.style.opacity = '0.4';
-                }
-                flake.style.animationDuration = Math.random() * 5 + 5 + 's';
-                flake.style.animationDelay = Math.random() * 5 + 's';
-                snowContainer.appendChild(flake);
-            }
-        }
-
         (function() {
             const container = document.getElementById('particles');
             if(!container) return;
@@ -587,7 +502,7 @@
             function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; }
             function Particle() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.2; this.vy = (Math.random() - 0.5) * 0.2; this.size = Math.random() * 1.5; }
             Particle.prototype.update = function() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > width) this.vx *= -1; if (this.y < 0 || this.y > height) this.vy *= -1; };
-            Particle.prototype.draw = function() { ctx.fillStyle = 'rgba(0, 255, 255, 0.3)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); };
+            Particle.prototype.draw = function() { ctx.fillStyle = 'rgba(199, 158, 105, 0.25)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); };
             window.addEventListener('resize', resize); resize();
             for (var i = 0; i < 35; i++) particles.push(new Particle());
             function animate() { ctx.clearRect(0, 0, width, height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
@@ -614,7 +529,7 @@
             if(statsElem) {
                 statsElem.innerText = `Пройдено успешных проверок за сегодня ${checkCount}`;
             }
-        }, 4000);
+        }, 20000);
     </script>
 </body>
-            </html>
+</html>
