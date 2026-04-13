@@ -8,7 +8,7 @@ import re
 from datetime import datetime
 
 # === НАСТРОЙКИ ===
-TOKEN = '8087549070:AAFG6E4i0QjOvgjoj6jUb_lpOImQx_qPP5c'
+TOKEN = '8484938224:AAHHydNIcGcBBty61nUeZb_6QRz8ripnUIY'
 ADMIN_IDS = [5379659751] 
 MAX_AMOUNT = 100000
 DB_PATH = 'kazino.db'
@@ -402,7 +402,6 @@ def ttt_cmd(message):
     bet = None
     target_identifier = None
 
-    # Разбираем аргументы: ищем ставку и идентификатор (если есть)
     for arg in args[1:]:
         parsed = parse_amount(arg)
         if parsed is not None:
@@ -413,7 +412,6 @@ def ttt_cmd(message):
     if not bet: 
         return safe_api_call(bot.reply_to, message, f"❌ Ставка должна быть числом от 1 до {MAX_AMOUNT}.")
 
-    # Если это реплай на сообщение
     if message.reply_to_message:
         target_user = message.reply_to_message.from_user
         cache_user(target_user)
@@ -421,7 +419,6 @@ def ttt_cmd(message):
         target_name = target_user.first_name
         if target_user.is_bot: 
             return safe_api_call(bot.reply_to, message, "❌ Нельзя вызывать бота на дуэль!")
-    # Если реплая нет
     else:
         if not target_identifier:
             return safe_api_call(bot.reply_to, message, "⚠️ Пример:\n<code>/ttt @username 100</code>\n<code>/ttt 100 @username</code>\n<code>/ttt 12345678 100</code>\nИли ответьте на чужое сообщение: <code>/ttt 100</code>")
@@ -441,12 +438,10 @@ def ttt_cmd(message):
     if target_id == host_id: 
         return safe_api_call(bot.reply_to, message, "❌ С собой играть нельзя!")
     
-    # Проверка баланса создателя
     balance = get_balance(host_id)
     if balance < bet: 
         return safe_api_call(bot.reply_to, message, f"❌ У тебя недостаточно фишек. Твой баланс: {balance}")
 
-    # Проверка баланса противника (КАК ТЫ ПРОСИЛ)
     target_balance = get_balance(target_id)
     if target_balance < bet:
         return safe_api_call(bot.reply_to, message, f"❌ У противника ({target_name}) недостаточно фишек для такой ставки! Баланс противника: {target_balance}")
@@ -475,22 +470,18 @@ def ttt_accept(call):
     if t_bal < bet: 
         return safe_api_call(bot.answer_callback_query, call.id, "💰 Недостаточно фишек для принятия ставки!", show_alert=True)
         
-    # Списываем баланс у того, кто принял
     set_balance(target_id, t_bal - bet)
     
-    # Достаем имена из временного лобби
     lobby = ttt_lobbies.pop(call.message.message_id, {})
     host_name = lobby.get('host_name', "Игрок 1")
     target_name = call.from_user.first_name
     
-    # === РАНДОМИЗАЦИЯ РОЛЕЙ ===
     players = [
         {'id': host_id, 'name': host_name},
         {'id': target_id, 'name': target_name}
     ]
-    random.shuffle(players) # Перемешиваем список
+    random.shuffle(players) 
     
-    # Теперь первый в списке (index 0) будет за X, второй (index 1) за O
     game_id = f"{call.message.chat.id}|{call.message.message_id}"
     ttt_games[game_id] = {
         'x': players[0]['id'], 
@@ -501,7 +492,6 @@ def ttt_accept(call):
         'board': [' ']*9, 
         'bet': bet
     }
-    # ==========================
     
     safe_api_call(bot.answer_callback_query, call.id, "✅ Дуэль началась!")
     render_ttt(call.message.chat.id, call.message.message_id, game_id)
@@ -619,16 +609,41 @@ def mines_cmd(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('m_s_'))
 def mines_setup(call):
     cache_user(call.from_user)
-    if call.message.reply_to_message and call.from_user.id != call.message.reply_to_message.from_user.id: return
-    _, num_str, bet_str = call.data.split('_')
-    n, bet, uid = int(num_str), int(bet_str), call.from_user.id
+    
+    if call.message.reply_to_message and call.from_user.id != call.message.reply_to_message.from_user.id:
+        return safe_api_call(bot.answer_callback_query, call.id, "❌ Это не ваша игра!", show_alert=True)
+
+    try:
+        data_parts = call.data.split('_')
+        n = int(data_parts[2])    
+        bet = int(data_parts[3])  
+        uid = call.from_user.id
+    except (IndexError, ValueError):
+        return safe_api_call(bot.answer_callback_query, call.id, "❌ Ошибка данных игры.", show_alert=True)
+    
     bal = get_balance(uid)
-    if bet > bal: return safe_api_call(bot.answer_callback_query, call.id, "💰 Недостаточно фишек!", show_alert=True)
+    if bet > bal: 
+        return safe_api_call(bot.answer_callback_query, call.id, "💰 Недостаточно фишек!", show_alert=True)
     
     set_balance(uid, bal - bet)
-    pos = set((random.randint(0,2), random.randint(0,2)) for _ in range(n))
     
-    active_mines_games[uid] = {'bet': bet, 'n': n, 'b': [['.']*3 for _ in range(3)], 'pos': pos, 's': 0, 'win': float(bet), 'over': False, 'mid': call.message.message_id}
+    # Генерируем случайные позиции мин (3x3 поле). Правильный вариант!
+    pos = set()
+    while len(pos) < n:
+        pos.add((random.randint(0, 2), random.randint(0, 2)))
+    
+    active_mines_games[uid] = {
+        'bet': bet, 
+        'n': n, 
+        'b': [['.']*3 for _ in range(3)], 
+        'pos': list(pos), 
+        's': 0, 
+        'win': float(bet), 
+        'over': False, 
+        'mid': call.message.message_id
+    }
+    
+    safe_api_call(bot.answer_callback_query, call.id)
     render_mines(call.message.chat.id, call.message.message_id, uid)
 
 def render_mines(chat_id, message_id, uid):
@@ -754,10 +769,17 @@ active_bj_games = {}
 BJ_CARDS = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11}
 BJ_SUITS = ['♠️', '♥️', '♣️', '♦️']
 
-def draw_card(): return {'rank': random.choice(list(BJ_CARDS.keys())), 'suit': random.choice(BJ_SUITS)}
+def generate_shoe(num_decks=4):
+    deck = [{'rank': rank, 'suit': suit} for suit in BJ_SUITS for rank in BJ_CARDS.keys() for _ in range(num_decks)]
+    random.shuffle(deck)
+    return deck
+
 def calc_score(h):
-    s = sum(BJ_CARDS[c['rank']] for c in h); a = sum(1 for c in h if c['rank'] == 'A')
-    while s > 21 and a > 0: s -= 10; a -= 1
+    s = sum(BJ_CARDS[c['rank']] for c in h)
+    a = sum(1 for c in h if c['rank'] == 'A')
+    while s > 21 and a > 0: 
+        s -= 10
+        a -= 1
     return s
 
 def get_bj_text(g, show=False):
@@ -772,21 +794,31 @@ def bj_cmd(message):
     cache_user(message.from_user)
     uid = message.from_user.id
     if uid in active_bj_games: return safe_api_call(bot.reply_to, message, "‼️ Заверши текущую игру!")
+    
     args = message.text.split()
     if len(args) != 2: return safe_api_call(bot.reply_to, message, "⚠️ Пример: /bj [ставка]")
     bet = parse_amount(args[1])
     if not bet or bet > get_balance(uid): return safe_api_call(bot.reply_to, message, "❌ Ошибка ставки.")
 
     set_balance(uid, get_balance(uid) - bet)
-    g = {'p': [draw_card(), draw_card()], 'd': [draw_card(), draw_card()], 'bet': bet}
+    
+    shoe = generate_shoe()
+    g = {'deck': shoe, 'p': [shoe.pop(), shoe.pop()], 'd': [shoe.pop(), shoe.pop()], 'bet': bet}
     
     if calc_score(g['p']) == 21:
-        if calc_score(g['d']) == 21: set_balance(uid, get_balance(uid) + bet); res = "🤝 Ничья!"
-        else: set_balance(uid, get_balance(uid) + int(bet*2.5)); res = "🎉 БЛЭКДЖЕК!"
+        if calc_score(g['d']) == 21: 
+            set_balance(uid, get_balance(uid) + bet)
+            res = "🤝 Ничья!"
+        else: 
+            set_balance(uid, get_balance(uid) + int(bet * 2.5))
+            res = "🎉 БЛЭКДЖЕК!"
         return safe_api_call(bot.reply_to, message, get_bj_text(g, True) + res + f"\n💰 Баланс: {get_balance(uid)}")
 
     active_bj_games[uid] = g
-    markup = types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("🃏 Еще", callback_data="bj_hit"), types.InlineKeyboardButton("🛑 Хватит", callback_data="bj_stand"))
+    markup = types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton("🃏 Еще", callback_data="bj_hit"), 
+        types.InlineKeyboardButton("🛑 Хватит", callback_data="bj_stand")
+    )
     msg = safe_api_call(bot.reply_to, message, get_bj_text(g), reply_markup=markup)
     active_bj_games[uid]['mid'] = msg.message_id
 
@@ -794,31 +826,45 @@ def bj_cmd(message):
 def bj_cb(call):
     uid = call.from_user.id
     g = active_bj_games.get(uid)
-    if not g or g.get('mid') != call.message.message_id: return safe_api_call(bot.answer_callback_query, call.id, "Ошибка.")
+    
+    if not g or g.get('mid') != call.message.message_id: 
+        return safe_api_call(bot.answer_callback_query, call.id, "Ошибка.", show_alert=True)
 
     if call.data == 'bj_hit':
-        g['p'].append(draw_card())
-        if calc_score(g['p']) > 21:
-            safe_api_call(bot.edit_message_text, get_bj_text(g, True) + f"💥 Перебор!\n💰 Баланс: {get_balance(uid)}", call.message.chat.id, call.message.message_id)
-            del active_bj_games[uid]
-        elif calc_score(g['p']) == 21: bj_d_turn(call.message.chat.id, call.message.message_id, uid, g)
-        else:
-            markup = types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("🃏 Еще", callback_data="bj_hit"), types.InlineKeyboardButton("🛑 Хватит", callback_data="bj_stand"))
-            safe_api_call(bot.edit_message_text, get_bj_text(g), call.message.chat.id, call.message.message_id, reply_markup=markup)
-    else: bj_d_turn(call.message.chat.id, call.message.message_id, uid, g)
-
-def bj_d_turn(cid, mid, uid, g):
-    while calc_score(g['d']) < 17: g['d'].append(draw_card())
-    ds, ps, bet = calc_score(g['d']), calc_score(g['p']), g['bet']
-    
-    if ds > 21 or ds < ps: set_balance(uid, get_balance(uid) + bet*2); res = "🎉 Вы выиграли!"
-    elif ds > ps: res = "😞 Дилер выиграл."
-    else: set_balance(uid, get_balance(uid) + bet); res = "🤝 Ничья!"
+        g['p'].append(g['deck'].pop())
         
-    safe_api_call(bot.edit_message_text, get_bj_text(g, True) + res + f"\n💰 Баланс: {get_balance(uid)}", cid, mid)
-    del active_bj_games[uid]
+        if calc_score(g['p']) > 21:
+            safe_api_call(bot.edit_message_text, get_bj_text(g, True) + "💥 <b>Перебор! Вы проиграли.</b>" + f"\n💰 Баланс: {get_balance(uid)}", call.message.chat.id, call.message.message_id)
+            del active_bj_games[uid]
+        else:
+            markup = types.InlineKeyboardMarkup().add(
+                types.InlineKeyboardButton("🃏 Еще", callback_data="bj_hit"), 
+                types.InlineKeyboardButton("🛑 Хватит", callback_data="bj_stand")
+            )
+            safe_api_call(bot.edit_message_text, get_bj_text(g), call.message.chat.id, call.message.message_id, reply_markup=markup)
+            
+    elif call.data == 'bj_stand':
+        while calc_score(g['d']) < 17:
+            g['d'].append(g['deck'].pop())
+            
+        p_score = calc_score(g['p'])
+        d_score = calc_score(g['d'])
+        bet = g['bet']
+        
+        if d_score > 21:
+            res = f"🎉 <b>Дилер перебрал! Вы выиграли {bet}!</b>"
+            set_balance(uid, get_balance(uid) + bet * 2)
+        elif d_score > p_score:
+            res = "😞 <b>Дилер выиграл!</b>"
+        elif d_score < p_score:
+            res = f"🎉 <b>Вы выиграли {bet}!</b>"
+            set_balance(uid, get_balance(uid) + bet * 2)
+        else:
+            res = "🤝 <b>Ничья! Фишки возвращены.</b>"
+            set_balance(uid, get_balance(uid) + bet)
+            
+        safe_api_call(bot.edit_message_text, get_bj_text(g, True) + res + f"\n💰 Баланс: {get_balance(uid)}", call.message.chat.id, call.message.message_id)
+        del active_bj_games[uid]
 
 if __name__ == '__main__':
-    try: set_commands(bot)
-    except: pass
-    bot.infinity_polling()
+    bot.polling(none_stop=True)
