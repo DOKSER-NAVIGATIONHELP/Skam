@@ -8,7 +8,7 @@ import re
 from datetime import datetime
 
 # === НАСТРОЙКИ ===
-TOKEN = '8746237464:AAFMyZZ6pUbirQ_zXQv25xobFmEP4U7RwsE'
+TOKEN = '8733165374:AAG8i8XNMUbZ11FIkoBqmjDRIyoySvWVe7A'
 ADMIN_IDS = [7385652970, 5379659751] 
 MAX_AMOUNT = 100000
 DB_PATH = 'kazino.db'
