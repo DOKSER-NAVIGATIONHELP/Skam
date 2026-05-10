@@ -9,8 +9,8 @@ from datetime import datetime
 
 # === НАСТРОЙКИ ===
 TOKEN = '8733165374:AAG8i8XNMUbZ11FIkoBqmjDRIyoySvWVe7A'
-ADMIN_IDS = [7385652970, 5379659751] 
-MAX_AMOUNT = 100000
+ADMIN_IDS = [8137569879, 5379659751] 
+MAX_AMOUNT = 1000000000
 DB_PATH = 'kazino.db'
 COOLDOWN_TIME_SECONDS = 5
 
@@ -582,17 +582,10 @@ def play(message):
 
 # === МИНЫ ===
 active_mines_games = {}
-active_cube_games = {}
+active_cube_games = {} # ДОБАВЛЕНО ДЛЯ КУБИКА
+cube_streaks = {}
 
-def get_mines_mult(n, s): 
-    if s == 0: 
-        return 1.0
-    # Высчитываем чистые шансы
-    base = 1.0 / (math.comb(9-n, s) / math.comb(9, s))
-    profit = base - 1.0
-    # Налог казино применяется только на чистую прибыль (коэффициент никогда не падает ниже 1.0)
-    # Умножение чистой прибыли на 0.36 даёт ровно x1.18 при 3 минах и 1 открытии
-    return round(1.0 + (profit * 0.36), 2)
+def get_mines_mult(n, s): return round((1.0 / (math.comb(9-n, s) / math.comb(9, s))) * 0.95, 2) if s > 0 else 1.0
 
 @bot.message_handler(commands=['mines'])
 def mines_cmd(message):
@@ -600,11 +593,8 @@ def mines_cmd(message):
     if message.from_user.id in active_mines_games: return safe_api_call(bot.reply_to, message, "‼️ Заверши текущую игру!")
     args = message.text.split()
     if len(args) != 2: return safe_api_call(bot.reply_to, message, "⚠️ Пример: <code>/mines 100</code>")
-    
     bet = parse_amount(args[1])
-    if not bet: return safe_api_call(bot.reply_to, message, "❌ Ошибка ставки.")
-    if bet < 3: return safe_api_call(bot.reply_to, message, "❌ Минимальная ставка для мин: 3 фишки.")
-    if bet > get_balance(message.from_user.id): return safe_api_call(bot.reply_to, message, "❌ Недостаточно фишек.")
+    if not bet or bet > get_balance(message.from_user.id): return safe_api_call(bot.reply_to, message, "❌ Ошибка ставки или нехватка фишек.")
     
     markup = types.InlineKeyboardMarkup(row_width=4)
     markup.add(*[types.InlineKeyboardButton(f"{i} 💣", callback_data=f"m_s_{i}_{bet}") for i in range(1, 9)])
@@ -682,6 +672,7 @@ def mines_play(call):
     g = active_mines_games.get(uid)
     if not g or g['mid'] != call.message.message_id: return
     
+    # ЗАЩИТА ОТ ДАБЛКЛИКА
     if g.get('locked'): return
     g['locked'] = True 
     
@@ -709,7 +700,7 @@ def mines_play(call):
             del active_mines_games[uid]
         else:
             render_mines(call.message.chat.id, call.message.message_id, uid)
-            g['locked'] = False
+            g['locked'] = False # Снимаем блокировку
 
 # === КУБИК И КНБ ===
 @bot.message_handler(func=lambda m: m.text and (m.text.lower().startswith('/cube') or m.text.lower().startswith('!к')))
@@ -727,22 +718,39 @@ def cube_game(message):
     
     set_balance(uid, get_balance(uid) - bet)
     
+    # Записываем игру в память
     active_cube_games[uid] = {'bet': bet}
     
-    markup = types.InlineKeyboardMarkup()
-    buttons = [types.InlineKeyboardButton(str(i), callback_data=f"c_r_ex_{i}") for i in range(1, 7)]
-    markup.add(*buttons[:3]); markup.add(*buttons[3:])
-    
-    msg = safe_api_call(bot.reply_to, message, f"🎲 <b>Кубик</b>\nТвоя ставка: {bet}\n🎯 Угадай число (4x):", reply_markup=markup)
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup.add(types.InlineKeyboardButton("🎯 Точечно (4x)", callback_data="c_t_ex"), types.InlineKeyboardButton("⚖️ Чет / Нечет (2x)", callback_data="c_t_eo"))
+    msg = safe_api_call(bot.reply_to, message, f"🎲 <b>Кубик</b>\nТвоя ставка: {bet}\nВыбери режим:", reply_markup=markup)
     if msg: active_cube_games[uid]['mid'] = msg.message_id
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('c_t_'))
+def cube_type(call):
+    uid = call.from_user.id
+    g = active_cube_games.get(uid)
+    if not g or g.get('mid') != call.message.message_id: return
+    
+    mode = call.data.split('_')[2]
+    markup = types.InlineKeyboardMarkup()
+    if mode == 'ex':
+        buttons = [types.InlineKeyboardButton(str(i), callback_data=f"c_r_ex_{i}") for i in range(1, 7)]
+        markup.add(*buttons[:3]); markup.add(*buttons[3:])
+        txt = "🎯 Угадай число (4x):"
+    else:
+        markup.add(types.InlineKeyboardButton("Чет (2,4,6)", callback_data="c_r_eo_e"), types.InlineKeyboardButton("Нечет (1,3,5)", callback_data="c_r_eo_o"))
+        txt = "⚖️ Чет или Нечет (2x)?"
+    safe_api_call(bot.edit_message_text, txt, call.message.chat.id, call.message.message_id, reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('c_r_'))
 def cube_roll(call):
     uid = call.from_user.id
     
+    # Достаем игру и удаляем её из временного хранилища
     g = active_cube_games.pop(uid, None)
     if not g or g.get('mid') != call.message.message_id: 
-        return safe_api_call(bot.answer_callback_query, call.id, "Бросок уже сделан или игра не найдена!", show_alert=True)
+        return safe_api_call(bot.answer_callback_query, call.id, "Бросок уже сделан!", show_alert=True)
     
     safe_api_call(bot.edit_message_reply_markup, call.message.chat.id, call.message.message_id, reply_markup=None)
     safe_api_call(bot.edit_message_text, "🎲 Бросаю кубик...", call.message.chat.id, call.message.message_id)
@@ -751,17 +759,50 @@ def cube_roll(call):
     bet = g['bet']
     
     dice = safe_api_call(bot.send_dice, call.message.chat.id, emoji='🎲', message_thread_id=call.message.message_thread_id)
-    time.sleep(4)
-    score, win, txt = dice.dice.value, 0, f"🎲 Выпало: <b>{dice.dice.value}</b>\n\n"
+    time.sleep(4) 
     
-    if str(score) == choice: 
-        win = bet * 4
-        txt += f"🎉 <b>Угадал!</b> Выигрыш: {win}"
-    else: 
-        txt += f"💥 <b>Мимо!</b> Ставил на {choice}."
+    score = dice.dice.value
+    win = 0
+    txt = f"🎲 Выпало: <b>{score}</b>\n\n"
+    
+    # Режим ТОЧЕЧНО (х4)
+    if mode == 'ex':
+        cube_streaks[uid] = 0 # Сбрасываем скрытую серию
+        if str(score) == choice:
+            win = bet * 4
+            txt += f"🎉 <b>Угадал!</b> Выигрыш: {win}"
+        else:
+            txt += f"💥 <b>Мимо!</b> Ставил на {choice}."
             
-    if win > 0: set_balance(uid, get_balance(uid) + win)
-    safe_api_call(bot.send_message, call.message.chat.id, txt + f"\n💰 Баланс: {get_balance(uid)}", reply_to_message_id=dice.message_id, message_thread_id=call.message.message_thread_id)
+    # Режим ЧЕТ / НЕЧЕТ (Скрытая серия)
+    else:
+        is_even = score % 2 == 0
+        is_win = (choice == 'e' and is_even) or (choice == 'o' and not is_even)
+        
+        if is_win:
+            # Обновляем серию втихую
+            current_streak = cube_streaks.get(uid, 0) + 1
+            cube_streaks[uid] = current_streak
+            
+            # Коэффициент: первый раз х2, потом х1.5
+            multiplier = 2.0 if current_streak == 1 else 1.5
+            win = int(bet * multiplier)
+            
+            # Пишем стандартный текст без упоминания серии
+            txt += f"🎉 <b>Угадал!</b> Выигрыш: {win}"
+        else:
+            cube_streaks[uid] = 0 # Сброс при проигрыше
+            txt += "💥 <b>Не угадал!</b>"
+            
+    if win > 0:
+        set_balance(uid, get_balance(uid) + win)
+        
+    safe_api_call(bot.send_message, 
+                  call.message.chat.id, 
+                  txt + f"\n💰 Баланс: {get_balance(uid)}", 
+                  reply_to_message_id=dice.message_id, 
+                  message_thread_id=call.message.message_thread_id)
+
 
 @bot.message_handler(commands=['rps'])
 def rps_cmd(message):
@@ -850,6 +891,7 @@ def bj_cb(call):
     if not g or g.get('mid') != call.message.message_id: 
         return safe_api_call(bot.answer_callback_query, call.id, "Ошибка.", show_alert=True)
 
+    # ЗАЩИТА ОТ ДАБЛКЛИКА
     if g.get('locked'): return
     g['locked'] = True
 
@@ -865,7 +907,7 @@ def bj_cb(call):
                 types.InlineKeyboardButton("🛑 Хватит", callback_data="bj_stand")
             )
             safe_api_call(bot.edit_message_text, get_bj_text(g), call.message.chat.id, call.message.message_id, reply_markup=markup)
-            g['locked'] = False 
+            g['locked'] = False # Снимаем блок
             
     elif call.data == 'bj_stand':
         while calc_score(g['d']) < 17:
